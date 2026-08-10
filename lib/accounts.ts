@@ -15,7 +15,7 @@ export interface Account {
 }
 
 export const ACCOUNTS: Account[] = [
-  { id: "m1", name: "Frau Demir", username: "demir", role: "manager", password: "manager2026" },
+  { id: "m1", name: "petra", username: "demir", role: "manager", password: "petra12" },
   { id: "a1", name: "Lukas M.", username: "lukas", role: "agent", password: "lukas2026" },
   { id: "a2", name: "Sophie K.", username: "sophie", role: "agent", password: "sophie2026" },
   { id: "a3", name: "David R.", username: "david", role: "agent", password: "david2026" },
