@@ -26,8 +26,7 @@ export default function Page() {
   const [toast, setToast] = useState<string>("");
 
   // login form
-  const [loginAccounts, setLoginAccounts] = useState<Account[]>([]);
-  const [loginId, setLoginId] = useState("");
+  const [loginUser, setLoginUser] = useState("");
   const [loginPw, setLoginPw] = useState("");
   const [loginErr, setLoginErr] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
@@ -57,13 +56,6 @@ export default function Page() {
       setAgents(d.agents || []);
       setView(d.user.role === "manager" ? "overview" : "mine");
       await loadTasks();
-    } else {
-      const a = await fetch("/api/accounts", { cache: "no-store" });
-      if (a.ok) {
-        const list = (await a.json()).accounts as Account[];
-        setLoginAccounts(list);
-        if (list[0]) setLoginId(list[0].id);
-      }
     }
     setBooting(false);
   }, [loadTasks]);
@@ -74,7 +66,7 @@ export default function Page() {
     setLoginErr(""); setLoggingIn(true);
     const r = await fetch("/api/login", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accountId: loginId, password: loginPw }),
+      body: JSON.stringify({ username: loginUser, password: loginPw }),
     });
     setLoggingIn(false);
     if (r.ok) { setLoginPw(""); await boot(); }
@@ -138,14 +130,11 @@ export default function Page() {
           <h1>Dentakay Aufgaben</h1>
           <div className="sub">Bitte anmelden, um fortzufahren</div>
           <div className="fld">
-            <label>Konto</label>
-            <select value={loginId} onChange={(e) => setLoginId(e.target.value)}>
-              {loginAccounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name} — {a.role === "manager" ? "Managerin" : "Agent"}
-                </option>
-              ))}
-            </select>
+            <label>Benutzername</label>
+            <input value={loginUser}
+              onChange={(e) => setLoginUser(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && doLogin()}
+              placeholder="z. B. lukas" autoFocus autoCapitalize="off" />
           </div>
           <div className="fld">
             <label>Passwort</label>

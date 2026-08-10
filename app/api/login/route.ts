@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { findAccount, publicAccount } from "@/lib/accounts";
+import { findByUsername, publicAccount } from "@/lib/accounts";
 import { createSession } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -12,10 +12,10 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Ungültige Anfrage" }, { status: 400 });
   }
-  const { accountId, password } = body ?? {};
-  const acc = findAccount(String(accountId ?? ""));
+  const { username, password } = body ?? {};
+  const acc = findByUsername(String(username ?? ""));
   if (!acc || acc.password !== String(password ?? "")) {
-    return NextResponse.json({ error: "Falsches Konto oder Passwort" }, { status: 401 });
+    return NextResponse.json({ error: "Falscher Benutzername oder Passwort" }, { status: 401 });
   }
   await createSession(acc.id);
   return NextResponse.json({ user: publicAccount(acc) });

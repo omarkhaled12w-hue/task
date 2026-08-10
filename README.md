@@ -3,6 +3,20 @@
 Team-Aufgaben: Managerin weist zu, Agents sehen ihre Aufgaben und können eigene hinzufügen.
 Next.js + Upstash Redis, für Vercel.
 
+## Anmeldung
+
+Login jetzt mit **Benutzername + Passwort** (kein Auswahlmenü mehr — wie eine normale Website).
+
+Standard-Konten (bitte in `lib/accounts.ts` durch echte Namen/Passwörter ersetzen):
+
+| Benutzername | Passwort | Rolle |
+|---|---|---|
+| demir | manager2026 | Managerin |
+| lukas | lukas2026 | Agent |
+| sophie | sophie2026 | Agent |
+| david | david2026 | Agent |
+| nadia | nadia2026 | Agent |
+
 ## Einrichtung (einmalig)
 
 1. **Upstash Redis** erstellen (kostenlos): https://console.upstash.com → "Create Database" → Region wählen.
