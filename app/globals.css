@@ -72,6 +72,22 @@ button{font-family:inherit}
 .addbtn{background:var(--gold);color:var(--navy);border:0;border-radius:11px;padding:11px 17px;
   font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px}
 .addbtn:hover{background:var(--gold-d)}
+.bellbtn{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:11px;
+  width:42px;height:42px;font-size:17px;cursor:pointer;display:grid;place-items:center}
+.bellbtn:hover{background:var(--soft)}
+.bell-badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:10.5px;
+  font-weight:700;border-radius:99px;min-width:17px;height:17px;padding:0 4px;display:grid;place-items:center;
+  border:2px solid var(--panel)}
+.bell-dropdown{position:absolute;top:50px;right:0;width:300px;max-height:340px;overflow-y:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 40px rgba(10,18,40,.18);
+  z-index:50}
+.bell-head{font-size:13px;font-weight:700;color:var(--muted);padding:12px 14px 8px;
+  border-bottom:1px solid var(--line)}
+.bell-item{padding:10px 14px;border-bottom:1px solid var(--line)}
+.bell-item:last-child{border-bottom:0}
+.bell-item .bt{font-size:13.5px;line-height:1.4}
+.bell-item .ba{font-size:11px;color:var(--muted);margin-top:3px}
+.bell-empty{padding:20px 14px;text-align:center;color:var(--muted);font-size:13px}
 .content{padding:24px 30px;max-width:1000px}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
 @media(max-width:680px){.stats{grid-template-columns:repeat(2,1fr)}}

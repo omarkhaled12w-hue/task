@@ -21,4 +21,5 @@ export const KEYS = {
   taskSeq: "dentakay:task_seq", // Counter
   seeded: "dentakay:seeded", // Flag
   session: (token: string) => `dentakay:session:${token}`,
+  notif: (userId: string) => `dentakay:notif:${userId}`, // List: neueste zuerst
 };

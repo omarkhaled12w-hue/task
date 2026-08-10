@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth";
 import { redis, KEYS } from "@/lib/redis";
 import { findAccount } from "@/lib/accounts";
+import { pushNotification } from "@/lib/notifications";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -81,5 +82,16 @@ export async function POST(req: Request) {
   const id = await redis().incr(KEYS.taskSeq);
   const task: Task = { id, agentId, text, prio, due, done: false, createdBy: user.id, createdAt: Date.now() };
   await redis().hset(KEYS.tasks, { [String(id)]: JSON.stringify(task) });
+
+  // ---- Benachrichtigungen (auf Deutsch) ----
+  if (user.id === agentId) {
+    // Agent hat sich selbst eine Aufgabe erstellt.
+    await pushNotification(user.id, `Aufgabe erstellt: „${text}"`);
+  } else {
+    const agentName = findAccount(agentId)?.name ?? "Agent";
+    await pushNotification(user.id, `Aufgabe für ${agentName} erstellt: „${text}"`);
+    await pushNotification(agentId, `Neue Aufgabe zugewiesen: „${text}"`);
+  }
+
   return NextResponse.json({ task });
 }

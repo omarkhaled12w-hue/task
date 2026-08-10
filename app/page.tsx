@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 
 type Role = "manager" | "agent";
 interface Account { id: string; name: string; role: Role }
+interface Notif { id: string; text: string; time: number; read: boolean }
 interface Task {
   id: number; agentId: string; text: string;
   prio: "hoch" | "mittel" | "niedrig"; due: string; done: boolean;
@@ -15,6 +16,13 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 const isOver = (t: Task) => !t.done && !!t.due && t.due < todayISO();
 const fmt = (i: string) =>
   i ? new Date(i + "T00:00").toLocaleDateString("de-DE", { day: "2-digit", month: "short" }) : "";
+const timeAgo = (ms: number) => {
+  const s = Math.floor((Date.now() - ms) / 1000);
+  if (s < 60) return "gerade eben";
+  if (s < 3600) return Math.floor(s / 60) + " Min.";
+  if (s < 86400) return Math.floor(s / 3600) + " Std.";
+  return Math.floor(s / 86400) + " Tg.";
+};
 
 export default function Page() {
   const [booting, setBooting] = useState(true);
@@ -24,6 +32,11 @@ export default function Page() {
   const [view, setView] = useState<"overview" | "tasks" | "mine">("overview");
   const [filter, setFilter] = useState<string | null>(null);
   const [toast, setToast] = useState<string>("");
+
+  // Benachrichtigungen (Glocke)
+  const [notifs, setNotifs] = useState<Notif[]>([]);
+  const [unread, setUnread] = useState(0);
+  const [bellOpen, setBellOpen] = useState(false);
 
   // login form
   const [loginUser, setLoginUser] = useState("");
@@ -48,6 +61,15 @@ export default function Page() {
     if (r.ok) setTasks((await r.json()).tasks);
   }, []);
 
+  const loadNotifs = useCallback(async () => {
+    const r = await fetch("/api/notifications", { cache: "no-store" });
+    if (r.ok) {
+      const d = await r.json();
+      setNotifs(d.notifications);
+      setUnread(d.unread);
+    }
+  }, []);
+
   const boot = useCallback(async () => {
     const r = await fetch("/api/me", { cache: "no-store" });
     if (r.ok) {
@@ -56,11 +78,26 @@ export default function Page() {
       setAgents(d.agents || []);
       setView(d.user.role === "manager" ? "overview" : "mine");
       await loadTasks();
+      await loadNotifs();
     }
     setBooting(false);
-  }, [loadTasks]);
+  }, [loadTasks, loadNotifs]);
 
   useEffect(() => { boot(); }, [boot]);
+
+  useEffect(() => {
+    if (!user) return;
+    const t = setInterval(loadNotifs, 12000);
+    return () => clearInterval(t);
+  }, [user, loadNotifs]);
+
+  async function openBell() {
+    setBellOpen((v) => !v);
+    if (unread > 0) {
+      await fetch("/api/notifications/read", { method: "POST" });
+      setUnread(0);
+    }
+  }
 
   async function doLogin() {
     setLoginErr(""); setLoggingIn(true);
@@ -75,7 +112,7 @@ export default function Page() {
 
   async function logout() {
     await fetch("/api/logout", { method: "POST" });
-    setUser(null); setTasks([]);
+    setUser(null); setTasks([]); setNotifs([]); setUnread(0); setBellOpen(false);
     await boot();
   }
 
@@ -106,8 +143,8 @@ export default function Page() {
       body: JSON.stringify(body),
     });
     if (r.ok) {
-      setModal(false); loadTasks();
-      flash(user?.role === "manager" ? "Aufgabe zugewiesen" : "Aufgabe hinzugefügt");
+      setModal(false); loadTasks(); loadNotifs();
+      flash(user?.role === "manager" ? "Aufgabe erstellt" : "Aufgabe hinzugefügt");
     } else flash((await r.json()).error || "Fehler");
   }
 
@@ -295,9 +332,26 @@ export default function Page() {
             <h2>{titles[view][0]}</h2>
             <div className="subt">{titles[view][1]}</div>
           </div>
-          <button className="addbtn" onClick={openAdd}>+ Neue Aufgabe</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative" }}>
+            <button className="bellbtn" onClick={openBell} aria-label="Benachrichtigungen">
+              🔔
+              {unread > 0 && <span className="bell-badge">{unread}</span>}
+            </button>
+            {bellOpen && (
+              <div className="bell-dropdown" onClick={(e) => e.stopPropagation()}>
+                <div className="bell-head">Benachrichtigungen</div>
+                {notifs.length ? notifs.map((n) => (
+                  <div key={n.id} className="bell-item">
+                    <div className="bt">{n.text}</div>
+                    <div className="ba">{timeAgo(n.time)}</div>
+                  </div>
+                )) : <div className="bell-empty">Keine Benachrichtigungen</div>}
+              </div>
+            )}
+            <button className="addbtn" onClick={openAdd}>+ Neue Aufgabe</button>
+          </div>
         </div>
-        <div className="content">{content}</div>
+        <div className="content" onClick={() => bellOpen && setBellOpen(false)}>{content}</div>
       </div>
 
       {modal && (
